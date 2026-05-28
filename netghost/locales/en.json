@@ -1,0 +1,62 @@
+{
+  "app.title": "NetGhost — Network Security Analysis Tool",
+  "app.version": "Version",
+
+  "menu.quit": "Quit",
+  "menu.settings": "Settings",
+  "menu.help": "Help",
+
+  "interface.label": "Interface",
+  "interface.select": "Select Network Interface",
+  "interface.no_packet": "Waiting for packets on {iface}...",
+  "interface.capture_started": "Capture started on {iface}",
+  "interface.capture_stopped": "Capture stopped",
+  "interface.no_capture": "No capture running",
+
+  "traffic.title": "Live Traffic",
+  "traffic.col.time": "Time",
+  "traffic.col.src": "Source",
+  "traffic.col.dst": "Destination",
+  "traffic.col.proto": "Protocol",
+  "traffic.col.size": "Size",
+  "traffic.col.info": "Info",
+  "traffic.empty": "No packets captured yet",
+  "traffic.row.expand": "Expand for details",
+  "traffic.row.collapse": "Collapse",
+
+  "connections.title": "Active Connections",
+  "connections.col.src": "Source",
+  "connections.col.dst": "Destination",
+  "connections.col.proto": "Proto",
+  "connections.col.port": "Port",
+  "connections.col.bytes": "Bytes",
+  "connections.empty": "No active connections",
+
+  "stats.title": "Statistics",
+  "stats.pkts": "Packets",
+  "stats.pkts_per_sec": "pkts/s",
+  "stats.bytes_per_sec": "MB/s",
+  "stats.active_conns": "Active",
+  "stats.total": "Total",
+  "stats.errors": "Errors",
+  "stats.uptime": "Uptime",
+
+  "detail.title": "Packet Details",
+  "detail.l2": "Layer 2 — Ethernet",
+  "detail.l3": "Layer 3 — IP",
+  "detail.l4": "Layer 4 — Transport",
+  "detail.payload": "Payload (Hex/ASCII)",
+  "detail.no_selection": "Select a packet to view details",
+
+  "action.block": "Block Connection",
+  "action.blocked": "Connection blocked",
+  "action.reset": "Send RST",
+  "action.reset_sent": "RST packet sent",
+
+  "recording.start": "Recording started",
+  "recording.stop": "Recording stopped",
+  "recording.active": "● REC",
+  "recording.save": "Save PCAP",
+
+  "key.help": "Q: Quit | S: Start/Stop recording | ↑↓: Navigate | Enter: Expand | R: Send RST | B: Block | F: Filter | L: Change Language"
+}

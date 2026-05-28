@@ -1,0 +1,26 @@
+[project]
+name = "netghost"
+version = "0.1.0"
+description = "NetGhost — Cross-platform Network Security Analysis TUI"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "NetGhost Contributors"},
+]
+
+dependencies = [
+    "textual>=1.0.0",
+    "scapy>=2.6.0",
+    "rich>=13.0.0",
+]
+
+[project.scripts]
+netghost = "netghost.app:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["netghost*"]

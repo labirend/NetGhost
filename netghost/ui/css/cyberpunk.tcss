@@ -1,0 +1,187 @@
+/* ========================================================================
+   NetGhost — Cyberpunk Dark Theme
+   ======================================================================== */
+
+Screen {
+    background: #0a0a0a;
+}
+
+/* ---- Top Bar ---- */
+#top-bar {
+    dock: top;
+    height: 3;
+    background: #0d0d0d;
+    border-bottom: solid #00ffff;
+    layout: horizontal;
+    align: center middle;
+}
+
+#app-title {
+    color: #00ffff;
+    text-style: bold;
+    padding: 0 2;
+}
+
+#interface-label {
+    color: #bf00ff;
+    text-style: bold;
+    padding: 0 1;
+}
+
+#recording-indicator {
+    color: #ff0040;
+    text-style: bold;
+    padding: 0 2;
+}
+
+#lang-button {
+    background: #1a1a2e;
+    color: #00ffff;
+    border: solid #bf00ff;
+    margin: 0 1;
+}
+
+/* ---- Middle Row (Traffic + Connections) ---- */
+#middle-row {
+    height: 1fr;
+    layout: horizontal;
+}
+
+.panel {
+    background: #0f0f0f;
+    border: solid #1a1a2e;
+    height: 100%;
+}
+
+#traffic-panel {
+    width: 65%;
+}
+
+#connection-panel {
+    width: 35%;
+}
+
+.panel-title {
+    background: #1a1a2e;
+    color: #00ffff;
+    text-style: bold;
+    padding: 0 1;
+    height: 1;
+    dock: top;
+}
+
+/* ---- Traffic Table ---- */
+#traffic-table {
+    height: 100%;
+}
+
+#traffic-table DataTable {
+    background: #0f0f0f;
+    color: #c0c0c0;
+}
+
+#traffic-table DataTable > .datatable--header {
+    background: #1a1a2e;
+    color: #00ffff;
+    text-style: bold;
+}
+
+#traffic-table DataTable > .datatable--cursor {
+    background: #2a0044;
+    color: #bf00ff;
+}
+
+/* ---- Connection Panel ---- */
+#connection-table DataTable {
+    background: #0f0f0f;
+    color: #c0c0c0;
+}
+
+#connection-table DataTable > .datatable--header {
+    background: #1a1a2e;
+    color: #00ffff;
+    text-style: bold;
+}
+
+/* ---- Stats Panel ---- */
+#stats-panel {
+    dock: bottom;
+    height: 5;
+    background: #0d0d0d;
+    border-top: solid #bf00ff;
+    border-bottom: solid #1a1a2e;
+}
+
+#stats-container {
+    layout: horizontal;
+    height: 4;
+    padding: 0 2;
+}
+
+.stat-box {
+    width: 1fr;
+    height: 4;
+    padding: 0 1;
+}
+
+.stat-value {
+    color: #00ff41;
+    text-style: bold;
+    text-align: center;
+}
+
+.stat-label {
+    color: #808080;
+    text-align: center;
+}
+
+/* ---- Detail Panel ---- */
+#detail-container {
+    dock: bottom;
+    height: 10;
+    background: #0a0a0a;
+    border-top: solid #bf00ff;
+}
+
+#detail-content {
+    background: #0a0a0a;
+    color: #c0c0c0;
+    padding: 0 1;
+    height: 100%;
+}
+
+/* ---- Key Hint Bar ---- */
+#key-hints {
+    dock: bottom;
+    height: 1;
+    background: #0d0d0d;
+    color: #555555;
+    border-top: solid #1a1a2e;
+    padding: 0 2;
+}
+
+/* ---- Dialog Boxes ---- */
+Dialog {
+    background: #0f0f0f;
+    border: solid #bf00ff;
+}
+
+Dialog > Label {
+    color: #00ffff;
+}
+
+Dialog > Button {
+    background: #1a1a2e;
+    color: #00ff41;
+    border: solid #bf00ff;
+}
+
+Dialog > Button:hover {
+    background: #2a0044;
+    color: #00ffff;
+}
+
+/* ---- Misc ---- */
+Static {
+    background: transparent;
+}

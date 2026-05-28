@@ -1,0 +1,62 @@
+{
+  "app.title": "NetGhost — Ağ Güvenlik Analiz Aracı",
+  "app.version": "Sürüm",
+
+  "menu.quit": "Çıkış",
+  "menu.settings": "Ayarlar",
+  "menu.help": "Yardım",
+
+  "interface.label": "Arayüz",
+  "interface.select": "Ağ Arayüzü Seç",
+  "interface.no_packet": "{iface} üzerinde paket bekleniyor...",
+  "interface.capture_started": "{iface} üzerinde yakalama başladı",
+  "interface.capture_stopped": "Yakalama durduruldu",
+  "interface.no_capture": "Aktif yakalama yok",
+
+  "traffic.title": "Canlı Trafik",
+  "traffic.col.time": "Saat",
+  "traffic.col.src": "Kaynak",
+  "traffic.col.dst": "Hedef",
+  "traffic.col.proto": "Protokol",
+  "traffic.col.size": "Boyut",
+  "traffic.col.info": "Bilgi",
+  "traffic.empty": "Henüz paket yakalanmadı",
+  "traffic.row.expand": "Detay için genişlet",
+  "traffic.row.collapse": "Daralt",
+
+  "connections.title": "Aktif Bağlantılar",
+  "connections.col.src": "Kaynak",
+  "connections.col.dst": "Hedef",
+  "connections.col.proto": "Proto",
+  "connections.col.port": "Port",
+  "connections.col.bytes": "Bayt",
+  "connections.empty": "Aktif bağlantı yok",
+
+  "stats.title": "İstatistik",
+  "stats.pkts": "Paket",
+  "stats.pkts_per_sec": "pkts/s",
+  "stats.bytes_per_sec": "MB/s",
+  "stats.active_conns": "Aktif",
+  "stats.total": "Toplam",
+  "stats.errors": "Hata",
+  "stats.uptime": "Çalışma Süresi",
+
+  "detail.title": "Paket Detayı",
+  "detail.l2": "Katman 2 — Ethernet",
+  "detail.l3": "Katman 3 — IP",
+  "detail.l4": "Katman 4 — Taşıma",
+  "detail.payload": "Yük (Hex/ASCII)",
+  "detail.no_selection": "Detay görmek için bir paket seçin",
+
+  "action.block": "Bağlantıyı Engelle",
+  "action.blocked": "Bağlantı engellendi",
+  "action.reset": "RST Gönder",
+  "action.reset_sent": "RST paketi gönderildi",
+
+  "recording.start": "Kayıt başladı",
+  "recording.stop": "Kayıt durduruldu",
+  "recording.active": "● KAYIT",
+  "recording.save": "PCAP Kaydet",
+
+  "key.help": "Q: Çıkış | S: Kayıt Başlat/Durdur | ↑↓: Gezin | Enter: Genişlet | R: RST Gönder | B: Engelle | F: Filtrele | L: Dil Değiştir"
+}

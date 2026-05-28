@@ -1,0 +1,15 @@
+services:
+  netghost:
+    build: .
+    network_mode: "host"
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    environment:
+      - LANG=${LANG:-en_US.UTF-8}
+      - INTERFACE=${INTERFACE:-eth0}
+      - TERM=${TERM:-xterm-256color}
+    stdin_open: true
+    tty: true
+    working_dir: /app
+    entrypoint: ["python", "-O", "-m", "netghost"]
