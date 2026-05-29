@@ -22,6 +22,9 @@ Thumbs.db
 *.log
 logs/
 
+# Working copy (testing branch)
+NetGhost-main-github/
+
 # PCAP
 *.pcap
 

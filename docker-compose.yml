@@ -7,8 +7,9 @@ services:
       - NET_ADMIN
     environment:
       - LANG=${LANG:-en_US.UTF-8}
-      - INTERFACE=${INTERFACE:-eth0}
+      - INTERFACE=${INTERFACE:-}
       - TERM=${TERM:-xterm-256color}
+      - NETGHOST_DEV=${NETGHOST_DEV:-0}
     stdin_open: true
     tty: true
     working_dir: /app

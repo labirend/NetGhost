@@ -32,6 +32,7 @@ class ConnectionPanel(Widget):
         )
         table.cursor_type = "row"
         table.show_cursor = True
+        table.show_horizontal_scrollbar = True
         yield table
 
     def on_mount(self) -> None:
@@ -66,6 +67,10 @@ class ConnectionPanel(Widget):
         flow["last"] = pkt.timestamp
 
         self._refresh_display()
+
+    @property
+    def flow_count(self) -> int:
+        return len(self._flows)
 
     def _refresh_display(self) -> None:
         if not self._table:

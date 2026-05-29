@@ -13,7 +13,15 @@
   "interface.capture_stopped": "Capture stopped",
   "interface.no_capture": "No capture running",
 
-  "traffic.title": "Live Traffic",
+  "dashboard.title": "Dashboard",
+  "dashboard.pkts": "Packets",
+  "dashboard.bytes": "Data",
+  "dashboard.rate": "Rate",
+  "dashboard.bw": "Bandwidth",
+  "dashboard.conns": "Active",
+  "dashboard.uptime": "Uptime",
+
+  "traffic.title": "Traffic",
   "traffic.col.time": "Time",
   "traffic.col.src": "Source",
   "traffic.col.dst": "Destination",
@@ -24,7 +32,7 @@
   "traffic.row.expand": "Expand for details",
   "traffic.row.collapse": "Collapse",
 
-  "connections.title": "Active Connections",
+  "connections.title": "Connections",
   "connections.col.src": "Source",
   "connections.col.dst": "Destination",
   "connections.col.proto": "Proto",
@@ -50,13 +58,13 @@
 
   "action.block": "Block Connection",
   "action.blocked": "Connection blocked",
-  "action.reset": "Send RST",
-  "action.reset_sent": "RST packet sent",
+  "action.reset": "Reset TCP",
+  "action.reset_sent": "TCP connection reset (RST) sent",
 
   "recording.start": "Recording started",
   "recording.stop": "Recording stopped",
   "recording.active": "● REC",
   "recording.save": "Save PCAP",
 
-  "key.help": "Q: Quit | S: Start/Stop recording | ↑↓: Navigate | Enter: Expand | R: Send RST | B: Block | F: Filter | L: Change Language"
+  "key.help": "S:Record  R:Reset TCP  B:Block  Space:Pause  L:EN/TR  Q:Quit"
 }

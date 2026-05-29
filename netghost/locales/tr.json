@@ -13,7 +13,15 @@
   "interface.capture_stopped": "Yakalama durduruldu",
   "interface.no_capture": "Aktif yakalama yok",
 
-  "traffic.title": "Canlı Trafik",
+  "dashboard.title": "Panel",
+  "dashboard.pkts": "Paket",
+  "dashboard.bytes": "Veri",
+  "dashboard.rate": "Hız",
+  "dashboard.bw": "Bant",
+  "dashboard.conns": "Aktif",
+  "dashboard.uptime": "Süre",
+
+  "traffic.title": "Trafik",
   "traffic.col.time": "Saat",
   "traffic.col.src": "Kaynak",
   "traffic.col.dst": "Hedef",
@@ -24,7 +32,7 @@
   "traffic.row.expand": "Detay için genişlet",
   "traffic.row.collapse": "Daralt",
 
-  "connections.title": "Aktif Bağlantılar",
+  "connections.title": "Bağlantılar",
   "connections.col.src": "Kaynak",
   "connections.col.dst": "Hedef",
   "connections.col.proto": "Proto",
@@ -50,13 +58,13 @@
 
   "action.block": "Bağlantıyı Engelle",
   "action.blocked": "Bağlantı engellendi",
-  "action.reset": "RST Gönder",
-  "action.reset_sent": "RST paketi gönderildi",
+  "action.reset": "TCP Sıfırla",
+  "action.reset_sent": "TCP bağlantısı sıfırlandı (RST)",
 
   "recording.start": "Kayıt başladı",
   "recording.stop": "Kayıt durduruldu",
   "recording.active": "● KAYIT",
   "recording.save": "PCAP Kaydet",
 
-  "key.help": "Q: Çıkış | S: Kayıt Başlat/Durdur | ↑↓: Gezin | Enter: Genişlet | R: RST Gönder | B: Engelle | F: Filtrele | L: Dil Değiştir"
+  "key.help": "S:Kayıt  R:TCP Kes  B:Engelle  Boşluk:Durdur  L:TR/EN  Q:Çıkış"
 }

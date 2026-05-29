@@ -1,19 +1,16 @@
-/* ========================================================================
-   NetGhost — Cyberpunk Dark Theme
-   ======================================================================== */
-
 Screen {
-    background: #0a0a0a;
+    background: #080808;
 }
 
-/* ---- Top Bar ---- */
-#top-bar {
+/* ========================================================================
+   Top Bar
+   ======================================================================== */
+InterfaceBar {
     dock: top;
     height: 3;
-    background: #0d0d0d;
+    background: #0a0a0a;
     border-bottom: solid #00ffff;
     layout: horizontal;
-    align: center middle;
 }
 
 #app-title {
@@ -28,41 +25,56 @@ Screen {
     padding: 0 1;
 }
 
+#ip-label {
+    color: #00ff41;
+    padding: 0 1;
+}
+
+#mac-label {
+    color: #ff8c00;
+    padding: 0 1;
+}
+
 #recording-indicator {
     color: #ff0040;
     text-style: bold;
     padding: 0 2;
 }
 
-#lang-button {
-    background: #1a1a2e;
-    color: #00ffff;
-    border: solid #bf00ff;
-    margin: 0 1;
-}
 
-/* ---- Middle Row (Traffic + Connections) ---- */
-#middle-row {
+
+/* ========================================================================
+   Content Row — Left (20%) | Right (80%)
+   ======================================================================== */
+#content-row {
     height: 1fr;
     layout: horizontal;
 }
 
-.panel {
-    background: #0f0f0f;
-    border: solid #1a1a2e;
+#left-col {
+    width: 20%;
     height: 100%;
+    layout: vertical;
 }
 
-#traffic-panel {
-    width: 65%;
+#right-col {
+    width: 80%;
+    height: 100%;
+    layout: vertical;
 }
 
-#connection-panel {
-    width: 35%;
+/* ========================================================================
+   Dashboard Panel (left column, takes ~70% of left height)
+   ======================================================================== */
+#dash-panel {
+    height: 6fr;
+    background: #0a0a0a;
+    border-right: none;
+    overflow-x: hidden;
 }
 
-.panel-title {
-    background: #1a1a2e;
+#dash-title {
+    background: #111;
     color: #00ffff;
     text-style: bold;
     padding: 0 1;
@@ -70,118 +82,194 @@ Screen {
     dock: top;
 }
 
-/* ---- Traffic Table ---- */
+#dash-body {
+    height: auto;
+    layout: vertical;
+    padding: 1 1;
+}
+
+.dash-row {
+    height: 3;
+    layout: horizontal;
+}
+
+.dash-label {
+    width: 45%;
+    height: 3;
+    color: #606060;
+    text-align: left;
+}
+
+.dash-value {
+    width: 55%;
+    height: 3;
+    color: #00ff41;
+    text-style: bold;
+    text-align: right;
+}
+
+#dash-bytes {
+    color: #00ffff;
+}
+
+#dash-byterate {
+    color: #bf00ff;
+}
+
+#dash-conns {
+    color: #ff8c00;
+}
+
+#dash-uptime {
+    color: #808080;
+}
+
+/* ========================================================================
+   Filter Buttons (left column, takes ~30% of left height)
+   ======================================================================== */
+#filter-row {
+    height: 3fr;
+    layout: vertical;
+    align: center top;
+    padding: 1 0;
+    background: #0a0a0a;
+    border-top: solid #151515;
+    border-right: none;
+}
+
+.filter-line {
+    height: 2;
+    layout: horizontal;
+    align: center middle;
+}
+
+.filter-btn {
+    background: #151515;
+    color: #606060;
+    border: none;
+    min-width: 5;
+    height: 1;
+    margin: 0 1;
+    padding: 0 1;
+}
+
+.filter-btn.active {
+    background: #00ffff;
+    color: #000;
+    text-style: bold;
+}
+
+.filter-btn:hover {
+    background: #2a0044;
+    color: #bf00ff;
+}
+
+/* ---- Pause Button (below filters in left column) ---- */
+.pause-btn-bottom {
+    height: 5;
+    background: #003300;
+    color: #00ff41;
+    border: wide #00ff41;
+    min-width: 12;
+    margin: 1 2;
+    text-style: bold;
+    content-align: center middle;
+}
+
+.pause-btn-bottom.paused {
+    background: #330000;
+    color: #ff0040;
+    border: wide #ff0040;
+}
+
+/* ========================================================================
+   Traffic Table (right column, takes ~70% of right height)
+   ======================================================================== */
+.panel {
+    background: #0a0a0a;
+    border: solid #151515;
+    overflow-x: auto;
+}
+
+#traffic-panel {
+    height: 6fr;
+}
+
+.panel-title {
+    background: #111;
+    color: #00ffff;
+    text-style: bold;
+    padding: 0 1;
+    height: 1;
+    dock: top;
+}
+
 #traffic-table {
     height: 100%;
+    overflow-x: auto;
+    min-width: 100%;
 }
 
 #traffic-table DataTable {
-    background: #0f0f0f;
+    background: #0a0a0a;
     color: #c0c0c0;
 }
 
 #traffic-table DataTable > .datatable--header {
-    background: #1a1a2e;
+    background: #111;
     color: #00ffff;
     text-style: bold;
 }
 
 #traffic-table DataTable > .datatable--cursor {
-    background: #2a0044;
+    background: #1a0033;
     color: #bf00ff;
 }
 
-/* ---- Connection Panel ---- */
+/* ========================================================================
+   Connection Panel (right column, takes ~30% of right height)
+   ======================================================================== */
+#connection-panel {
+    height: 3fr;
+    border-top: solid #00ffff;
+}
+
 #connection-table DataTable {
-    background: #0f0f0f;
+    background: #0a0a0a;
     color: #c0c0c0;
 }
 
 #connection-table DataTable > .datatable--header {
-    background: #1a1a2e;
-    color: #00ffff;
+    background: #111;
+    color: #bf00ff;
     text-style: bold;
 }
 
-/* ---- Stats Panel ---- */
-#stats-panel {
-    dock: bottom;
-    height: 5;
-    background: #0d0d0d;
-    border-top: solid #bf00ff;
-    border-bottom: solid #1a1a2e;
-}
-
-#stats-container {
-    layout: horizontal;
-    height: 4;
-    padding: 0 2;
-}
-
-.stat-box {
-    width: 1fr;
-    height: 4;
-    padding: 0 1;
-}
-
-.stat-value {
-    color: #00ff41;
-    text-style: bold;
-    text-align: center;
-}
-
-.stat-label {
-    color: #808080;
-    text-align: center;
-}
-
-/* ---- Detail Panel ---- */
-#detail-container {
-    dock: bottom;
-    height: 10;
-    background: #0a0a0a;
-    border-top: solid #bf00ff;
-}
-
-#detail-content {
-    background: #0a0a0a;
-    color: #c0c0c0;
-    padding: 0 1;
-    height: 100%;
-}
-
-/* ---- Key Hint Bar ---- */
-#key-hints {
+/* ========================================================================
+   Bottom Bar — Key Hints + Play/Pause Button
+   ======================================================================== */
+#bottom-bar {
     dock: bottom;
     height: 1;
+    layout: horizontal;
     background: #0d0d0d;
-    color: #555555;
     border-top: solid #1a1a2e;
+}
+
+#key-hints {
+    height: 1;
+    color: #444;
     padding: 0 2;
 }
 
-/* ---- Dialog Boxes ---- */
-Dialog {
-    background: #0f0f0f;
-    border: solid #bf00ff;
-}
-
-Dialog > Label {
-    color: #00ffff;
-}
-
-Dialog > Button {
-    background: #1a1a2e;
-    color: #00ff41;
-    border: solid #bf00ff;
-}
-
-Dialog > Button:hover {
-    background: #2a0044;
-    color: #00ffff;
-}
-
-/* ---- Misc ---- */
+/* ========================================================================
+   Misc
+   ======================================================================== */
 Static {
     background: transparent;
+}
+
+/* Hide Desktop/TitleBar bits */
+Screen > Header {
+    display: none;
 }

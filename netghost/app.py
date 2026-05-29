@@ -17,7 +17,10 @@ class NetGhostApp(App):
     ]
 
     def compose(self):
-        yield MainScreen()
+        return iter([])
+
+    def on_mount(self) -> None:
+        self.push_screen(MainScreen())
 
     def action_quit(self) -> None:
         self.exit()
@@ -28,10 +31,17 @@ class NetGhostApp(App):
         new = "tr" if current == "en" else "en"
         set_language(new)
         self.notify(f"Language: {'Türkçe' if new == 'tr' else 'English'}")
-        hint = self.query_one("#key-hints", Static)
+        hint = self.screen.query_one("#key-hints", Static)
         hint.update(t("key.help"))
 
 
 def main() -> None:
-    app = NetGhostApp()
-    app.run()
+    import sys
+    try:
+        app = NetGhostApp()
+        app.run()
+    except Exception as e:
+        print(f"\nNetGhost Error: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)

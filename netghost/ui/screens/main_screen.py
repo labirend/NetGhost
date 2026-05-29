@@ -7,7 +7,7 @@ from typing import Optional
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Label, Static, DataTable
+from textual.widgets import Label, Static, DataTable, Button
 
 from netghost.i18n import t
 from netghost.capture.engine import CaptureEngine
@@ -17,15 +17,21 @@ from netghost.models.packet import PacketInfo
 from netghost.ui.widgets.interface_bar import InterfaceBar
 from netghost.ui.widgets.traffic_table import TrafficTable
 from netghost.ui.widgets.connection_panel import ConnectionPanel
-from netghost.ui.widgets.stats_panel import StatsPanel
-from netghost.ui.widgets.detail_panel import DetailPanel
+from netghost.ui.widgets.dashboard import Dashboard
+
+
+FILTER_GROUPS = [
+    ["ALL", "TCP", "UDP", "DNS", "HTTP"],
+    ["HTTPS", "ICMP", "ARP", "SSH", "DHCP"],
+]
 
 
 class MainScreen(Screen):
     BINDINGS = [
         ("s", "toggle_recording", "Record"),
-        ("r", "send_rst", "RST"),
+        ("r", "send_rst", "Reset"),
         ("b", "block_connection", "Block"),
+        ("space", "toggle_pause", "⏸"),
     ]
 
     def __init__(self) -> None:
@@ -35,72 +41,98 @@ class MainScreen(Screen):
         self.interceptor = Interceptor()
         self._capture_task: Optional[asyncio.Task] = None
         self._recording = False
+        self._paused = False
         self._traffic_table: Optional[TrafficTable] = None
         self._conn_panel: Optional[ConnectionPanel] = None
-        self._stats_panel: Optional[StatsPanel] = None
-        self._detail_panel: Optional[DetailPanel] = None
+        self._dashboard: Optional[Dashboard] = None
 
     def compose(self) -> ComposeResult:
         yield InterfaceBar()
-        with Horizontal(id="middle-row"):
-            with Vertical(classes="panel", id="traffic-panel"):
-                yield Label(t("traffic.title"), classes="panel-title")
-                yield TrafficTable()
-            with Vertical(classes="panel", id="connection-panel"):
-                yield Label(t("connections.title"), classes="panel-title")
-                yield ConnectionPanel()
-        yield StatsPanel(id="stats-panel")
-        yield DetailPanel(id="detail-container")
-        yield Static(t("key.help"), id="key-hints")
+        with Horizontal(id="content-row"):
+            with Vertical(id="left-col"):
+                yield Dashboard(id="dash-panel")
+                with Vertical(id="filter-row"):
+                    for group in FILTER_GROUPS:
+                        with Horizontal(classes="filter-line"):
+                            for f in group:
+                                cls = "filter-btn active" if f == "ALL" else "filter-btn"
+                                yield Button(f, id=f"flt-{f.lower()}", classes=cls)
+                yield Button("■  STOP", id="pause-btn", classes="pause-btn-bottom paused")
+            with Vertical(id="right-col"):
+                with Vertical(classes="panel", id="traffic-panel"):
+                    yield Label(t("traffic.title"), classes="panel-title")
+                    yield TrafficTable()
+                with Vertical(classes="panel", id="connection-panel"):
+                    yield Label(t("connections.title"), classes="panel-title")
+                    yield ConnectionPanel()
+        with Horizontal(id="bottom-bar"):
+            yield Static(t("key.help"), id="key-hints")
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         self._traffic_table = self.query_one(TrafficTable)
         self._conn_panel = self.query_one(ConnectionPanel)
-        self._stats_panel = self.query_one(StatsPanel)
-        self._detail_panel = self.query_one(DetailPanel)
+        self._dashboard = self.query_one(Dashboard)
 
-        interface = self.query_one(InterfaceBar)
+        iface_bar = self.query_one(InterfaceBar)
         iface = self.capture_engine.interface
-        interface.set_interface(iface)
+        iface_bar.set_interface(iface)
+
+        ip, mac = self.capture_engine.get_interface_info()
+        iface_bar.set_ip_mac(ip, mac)
 
         force_test = os.environ.get("NETGHOST_DEV", "0") == "1"
+        if force_test:
+            iface_bar.set_test_mode()
+            iface_bar.set_ip_mac("192.168.1.100", "00:1a:2b:3c:4d:5e")
+
         self._capture_task = asyncio.create_task(
             self._run_capture(force_test)
         )
 
     async def _run_capture(self, force_test: bool = False) -> None:
         await self.capture_engine.start(force_test=force_test)
-        if self.capture_engine.is_test_mode:
-            self.query_one(InterfaceBar).set_test_mode()
         while True:
             try:
                 pkt = await self.capture_engine.queue.get()
-                self.process_packet(pkt)
+                if not self._paused:
+                    self.process_packet(pkt)
             except asyncio.CancelledError:
                 break
 
-    def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
-        if not self._detail_panel or not self._traffic_table:
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if not event.button.id:
             return
-        try:
-            row_key = event.row_key.value
-            if row_key is None:
-                return
-            row_index = int(row_key)
-            pkt = self._traffic_table.get_packet(row_index)
-            if pkt:
-                self._detail_panel.show_packet(pkt)
-        except (ValueError, IndexError):
-            pass
+        if event.button.id.startswith("flt-"):
+            filter_name = str(event.button.label).upper()
+            for btn in self.query(".filter-btn"):
+                btn.remove_class("active")
+            event.button.add_class("active")
+            if self._traffic_table:
+                self._traffic_table.set_filter(filter_name)
+        elif event.button.id == "pause-btn":
+            self.action_toggle_pause()
 
     def process_packet(self, pkt: PacketInfo) -> None:
         if self._traffic_table:
             self._traffic_table.add_packet(pkt)
         if self._conn_panel:
             self._conn_panel.update(pkt)
-        if self._stats_panel:
-            self._stats_panel.tick(pkt.size)
+        if self._dashboard:
+            conn_count = self._conn_panel.flow_count if self._conn_panel else 0
+            self._dashboard.update_stats(pkt.size, conn_count)
         self.recorder.add_packet(pkt)
+
+    def action_toggle_pause(self) -> None:
+        self._paused = not self._paused
+        btn = self.query_one("#pause-btn", Button)
+        if self._paused:
+            btn.label = "▶  START"
+            btn.classes = "pause-btn-bottom"
+            self.notify("Paused — scroll freely")
+        else:
+            btn.label = "■  STOP"
+            btn.classes = "pause-btn-bottom paused"
+            self.notify("Resumed")
 
     def action_toggle_recording(self) -> None:
         if not self.recorder.recording:
@@ -133,7 +165,7 @@ class MainScreen(Screen):
             if self.interceptor.send_rst(pkt):
                 self.notify(t("action.reset_sent"))
             else:
-                self.notify("RST failed", severity="error")
+                self.notify("TCP reset failed", severity="error")
         else:
             self.notify("Select a TCP packet first", severity="warning")
 

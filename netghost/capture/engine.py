@@ -1,19 +1,42 @@
 from __future__ import annotations
 
 import asyncio
+import fcntl
+import os
 import random
+import socket
+import struct
+import subprocess
 import time as time_module
 from typing import Optional
-
-from scapy.all import AsyncSniffer, conf  # type: ignore
 
 from netghost.models.packet import PacketInfo, Layer2Info, Layer3Info, Layer4Info
 
 
+def _detect_default_interface() -> str:
+    env_iface = os.environ.get("INTERFACE", "")
+    if env_iface:
+        return env_iface
+    try:
+        result = subprocess.run(
+            ["ip", "route", "show", "default"],
+            capture_output=True, text=True, timeout=3
+        )
+        for line in result.stdout.splitlines():
+            parts = line.split()
+            if "dev" in parts:
+                idx = parts.index("dev")
+                if idx + 1 < len(parts):
+                    return parts[idx + 1]
+    except (FileNotFoundError, subprocess.TimeoutExpired, IndexError):
+        pass
+    return "eth0"
+
+
 class CaptureEngine:
-    def __init__(self, interface: str = "eth0") -> None:
-        self.interface = interface
-        self._sniffer: Optional[AsyncSniffer] = None
+    def __init__(self, interface: str = "") -> None:
+        self.interface = interface or _detect_default_interface()
+        self._sniffer = None
         self._running = False
         self._test_mode = False
         self._test_task: Optional[asyncio.Task] = None
@@ -40,6 +63,7 @@ class CaptureEngine:
             return
 
         try:
+            from scapy.all import AsyncSniffer  # type: ignore
             self._sniffer = AsyncSniffer(
                 iface=self.interface,
                 prn=lambda pkt: self._handler(pkt),
@@ -47,13 +71,14 @@ class CaptureEngine:
             )
             self._sniffer.start()
             self._running = True
-        except (PermissionError, OSError):
+        except (PermissionError, OSError, ImportError):
             self._test_mode = True
             self._running = True
             self._test_task = asyncio.create_task(self._generate_test_packets())
 
     def _handler(self, pkt) -> None:
-        info = PacketInfo.from_scapy(pkt)
+        from netghost.models.packet import PacketInfo as PI
+        info = PI.from_scapy(pkt)
         if info is not None:
             try:
                 self._queue.put_nowait(info)
@@ -113,7 +138,10 @@ class CaptureEngine:
     def stop(self) -> None:
         self._running = False
         if self._sniffer:
-            self._sniffer.stop()
+            try:
+                self._sniffer.stop()
+            except Exception:
+                pass
             self._sniffer = None
         if self._test_task:
             self._test_task.cancel()
@@ -126,6 +154,39 @@ class CaptureEngine:
     @staticmethod
     def list_interfaces() -> list[str]:
         try:
+            from scapy.all import conf  # type: ignore
             return sorted(conf.ifaces.data.keys())
         except Exception:
             return ["eth0", "wlan0", "lo"]
+
+    def get_interface_info(self) -> tuple[str, str]:
+        iface = self.interface
+        ip = self._get_ip(iface)
+        mac = self._get_mac(iface)
+        return ip, mac
+
+    @staticmethod
+    def _get_ip(iface: str) -> str:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            ip = socket.inet_ntoa(fcntl.ioctl(
+                s.fileno(), 0xc0206921,
+                struct.pack("256s", iface[:15].encode())
+            )[20:24])
+            s.close()
+            return ip
+        except Exception:
+            return "0.0.0.0"
+
+    @staticmethod
+    def _get_mac(iface: str) -> str:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            mac_bytes = fcntl.ioctl(
+                s.fileno(), 0x8927,
+                struct.pack("256s", iface[:15].encode())
+            )[18:24]
+            s.close()
+            return ":".join(f"{b:02x}" for b in mac_bytes)
+        except Exception:
+            return "00:00:00:00:00:00"
