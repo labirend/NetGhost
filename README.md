@@ -74,26 +74,26 @@ NETGHOST_DEV=1 python -m netghost
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│  ⛨ NetGhost v0.1.0    [eth0]    IP:192.168.1.100 │ MAC:00:1a │
+│  ⛨ NetGhost v0.1.0    [eth0]    IP:192.168.1.100 │ MAC:00:1a  │
 ├──────────────┬────────────────────────────────────────────────┤
 │  DASHBOARD   │  TRAFFIC TABLE                                 │
 │  Packets:287 │  Proto  Src IP         Dst IP          Size    │
-│  Data: 142KB │  TCP    10.0.0.5:443   192.168.1.100  1280    │
-│  Rate: 34/s  │  DNS    8.8.8.8:53     10.0.0.5:49231  89     │
-│  Bw:   1.2M  │  HTTPS  142.250.80.46  192.168.1.100  1460    │
-│  Conn:  12   │  ...                                          │
+│  Data: 142KB │  TCP    10.0.0.5:443   192.168.1.100  1280     │
+│  Rate: 34/s  │  DNS    8.8.8.8:53     10.0.0.5:49231  89      │
+│  Bw:   1.2M  │  HTTPS  142.250.80.46  192.168.1.100  1460     │
+│  Conn:  12   │  ...                                           │
 │  Up:   00:34 │                                                │
 │              │  CONNECTIONS PANEL                             │
 │  FILTERS     │  Src            Dst            Proto  Bytes    │
-│  [ALL] TCP   │  10.0.0.5      192.168.1.100  TCP    14.2K    │
-│  UDP  DNS    │  8.8.8.8       10.0.0.5       DNS    2.1K     │
-│  HTTP HTTPS  │  192.168.1.100 255.255.255.0  DHCP   1.4K     │
+│  [ALL] TCP   │  10.0.0.5      192.168.1.100  TCP    14.2K     │
+│  UDP  DNS    │  8.8.8.8       10.0.0.5       DNS    2.1K      │
+│  HTTP HTTPS  │  192.168.1.100 255.255.255.0  DHCP   1.4K      │
 │  ICMP ARP    │                                                │
 │  SSH  DHCP   │                                                │
 │              │                                                │
 │  [■ STOP]    │                                                │
 ├──────────────┴────────────────────────────────────────────────┤
-│  S:Record  R:Reset  B:Block  Space:Pause  L:EN/TR  Q:Quit   │
+│  S:Record  R:Reset  B:Block  Space:Pause  L:EN/TR  Q:Quit     │
 └───────────────────────────────────────────────────────────────┘
 ```
 
