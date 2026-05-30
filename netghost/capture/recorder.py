@@ -12,7 +12,7 @@ class PcapRecorder:
     def __init__(self, output_dir: str = "") -> None:
         self._recording = False
         self._packets: list[PacketInfo] = []
-        self._output_dir = output_dir or os.path.expanduser("~")
+        self._output_dir = output_dir or os.getcwd()
         self._filename: Optional[str] = None
         self._start_time: float = 0.0
 

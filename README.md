@@ -176,7 +176,7 @@ Docker Desktop runs a Linux VM under the hood — the container is Linux on all 
 
 ## Manual PCAP Recording
 
-Press `S` to begin recording. Press `S` again to stop. The file is saved to the container's working directory as `netghost_YYYYMMDD_HHMMSS.pcap`.
+Press `S` to begin recording. Press `S` again to stop. The file is saved to the current working directory as `netghost_YYYYMMDD_HHMMSS.pcap`. Inside Docker this is `/app/`; when running natively it is wherever you launched the tool.
 
 ---
 
