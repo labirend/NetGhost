@@ -50,9 +50,10 @@ class CaptureEngine:
     def is_test_mode(self) -> bool:
         return self._test_mode
 
-    async def start(self, interface: Optional[str] = None, force_test: bool = False) -> None:
+    async def start(self, interface: Optional[str] = None, force_test: bool = False) -> bool:
+        """Start capture. Returns True if real capture active, False if fallback to test mode."""
         if self._running:
-            return
+            return True
         if interface:
             self.interface = interface
 
@@ -60,7 +61,7 @@ class CaptureEngine:
             self._test_mode = True
             self._running = True
             self._test_task = asyncio.create_task(self._generate_test_packets())
-            return
+            return False
 
         try:
             from scapy.all import AsyncSniffer  # type: ignore
@@ -70,11 +71,16 @@ class CaptureEngine:
                 store=False,
             )
             self._sniffer.start()
+            await asyncio.sleep(0.5)
+            if hasattr(self._sniffer, "_thread") and not self._sniffer._thread.is_alive():
+                raise RuntimeError(f"Sniffer thread died on interface {self.interface}")
             self._running = True
-        except (PermissionError, OSError, ImportError):
+            return True
+        except Exception:
             self._test_mode = True
             self._running = True
             self._test_task = asyncio.create_task(self._generate_test_packets())
+            return False
 
     def _handler(self, pkt) -> None:
         from netghost.models.packet import PacketInfo as PI
