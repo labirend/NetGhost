@@ -90,14 +90,10 @@ class MainScreen(Screen):
         )
 
     async def _run_capture(self, force_test: bool = False) -> None:
-        real = await self.capture_engine.start(force_test=force_test)
-        if not real and not force_test:
-            self.notify(
-                "Real capture failed (interface not found / permission denied). "
-                "Switched to demo mode.",
-                severity="warning",
-                timeout=8,
-            )
+        ok = await self.capture_engine.start(force_test=force_test)
+        if not ok and not force_test:
+            msg = f"Capture failed — interface '{self.capture_engine.interface}' got no packets."
+            self.notify(msg, severity="error", timeout=8)
         while True:
             try:
                 pkt = await self.capture_engine.queue.get()

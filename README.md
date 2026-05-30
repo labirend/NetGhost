@@ -34,16 +34,14 @@ cd NetGhost
 # Build
 docker compose build
 
-# Run (real capture — needs NET_RAW + NET_ADMIN)
+# Run (real capture — privileged container)
 docker compose run netghost
 
 # Run in demo mode (no privileges required)
 NETGHOST_DEV=1 docker compose run netghost
 ```
 
-The `docker-compose.yml` grants only the minimum capabilities:
-- `NET_RAW` — raw socket access (packet capture)
-- `NET_ADMIN` — network administration (IP blocking / RST)
+The container runs with `privileged: true` and host networking for full interface access. The `NET_RAW` and `NET_ADMIN` capabilities are included but superseded by the privileged mode.
 
 ### Natively (Linux)
 
@@ -53,7 +51,7 @@ pip install -r requirements.txt
 NETGHOST_DEV=1 python -m netghost
 ```
 
-> **Note:** Real packet capture requires root or `CAP_NET_RAW` / `CAP_NET_ADMIN`. The Docker setup handles this. Without these, the tool falls back to demo mode automatically.
+> **Note:** Real packet capture requires root or `privileged` Docker container. For native testing without privileges, use `NETGHOST_DEV=1` for simulated traffic.
 
 ---
 
@@ -122,8 +120,7 @@ NetGhost/
     │   ├── en.json          # 50+ English UI strings
     │   └── tr.json          # Turkish translations
     ├── capture/
-    │   ├── engine.py        # AsyncSniffer (Scapy) + interface info
-    │   ├── parser.py        # L2/L3/L4 packet parser
+    │   ├── engine.py        # Threaded sniff loop + interface auto-detect
     │   ├── interceptor.py   # RST injection + iptables blocking
     │   └── recorder.py      # PCAP file writer
     ├── models/
@@ -157,7 +154,7 @@ docker compose run netghost
 NETGHOST_DEV=1 docker compose run netghost
 ```
 
-> **Note:** Linux users must have Docker installed and their user in the `docker` group. If you get a permission error, run `newgrp docker` and try again.
+> **Note:** The container runs with `privileged: true` — this gives full access to host network interfaces. Linux users must have Docker installed and their user in the `docker` group. If you get a permission error, run `newgrp docker` and try again.
 
 ---
 
@@ -191,10 +188,6 @@ pip install -r requirements.txt
 # Demo mode (no root)
 NETGHOST_DEV=1 python -m netghost
 ```
-
-### Existing branch testing directory
-
-A fully tested copy of the codebase lives in `NetGhost-main-github/` alongside the root. This directory is gitignored and can be used for iterative experimentation without disturbing the main source tree.
 
 ---
 

@@ -3,18 +3,37 @@ from __future__ import annotations
 import asyncio
 import fcntl
 import os
+import queue as qmod
 import random
 import socket
 import struct
 import subprocess
+import sys
+import threading
 import time as time_module
 from typing import Optional
 
 from netghost.models.packet import PacketInfo, Layer2Info, Layer3Info, Layer4Info
 
 
+def _list_interfaces() -> list[str]:
+    try:
+        r = subprocess.run(
+            ["ip", "-br", "link", "show"],
+            capture_output=True, text=True, timeout=3,
+        )
+        ifaces = []
+        for line in r.stdout.splitlines():
+            parts = line.split()
+            if parts and parts[0] != "lo":
+                ifaces.append(parts[0])
+        return ifaces
+    except Exception:
+        return []
+
+
 def _detect_default_interface() -> str:
-    env_iface = os.environ.get("INTERFACE", "")
+    env_iface = os.environ.get("INTERFACE", "").strip()
     if env_iface:
         return env_iface
     try:
@@ -30,17 +49,24 @@ def _detect_default_interface() -> str:
                     return parts[idx + 1]
     except (FileNotFoundError, subprocess.TimeoutExpired, IndexError):
         pass
+
+    candidates = _list_interfaces()
+    if candidates:
+        return candidates[0]
     return "eth0"
 
 
 class CaptureEngine:
     def __init__(self, interface: str = "") -> None:
         self.interface = interface or _detect_default_interface()
-        self._sniffer = None
         self._running = False
         self._test_mode = False
         self._test_task: Optional[asyncio.Task] = None
         self._queue: asyncio.Queue[PacketInfo] = asyncio.Queue(maxsize=5000)
+        self._t_queue: qmod.Queue = qmod.Queue(maxsize=5000)
+        self._stop_event = threading.Event()
+        self._capture_thread: Optional[threading.Thread] = None
+        self._bridge_task: Optional[asyncio.Task] = None
 
     @property
     def queue(self) -> asyncio.Queue[PacketInfo]:
@@ -51,11 +77,8 @@ class CaptureEngine:
         return self._test_mode
 
     async def start(self, interface: Optional[str] = None, force_test: bool = False) -> bool:
-        """Start capture. Returns True if real capture active, False if fallback to test mode."""
         if self._running:
-            return True
-        if interface:
-            self.interface = interface
+            return self._test_mode is False
 
         if force_test:
             self._test_mode = True
@@ -63,37 +86,98 @@ class CaptureEngine:
             self._test_task = asyncio.create_task(self._generate_test_packets())
             return False
 
-        try:
-            from scapy.all import AsyncSniffer  # type: ignore
-            self._sniffer = AsyncSniffer(
-                iface=self.interface,
-                prn=lambda pkt: self._handler(pkt),
-                store=False,
-            )
-            self._sniffer.start()
-            await asyncio.sleep(0.5)
-            if hasattr(self._sniffer, "_thread") and not self._sniffer._thread.is_alive():
-                raise RuntimeError(f"Sniffer thread died on interface {self.interface}")
-            self._running = True
-            return True
-        except Exception:
-            self._test_mode = True
-            self._running = True
-            self._test_task = asyncio.create_task(self._generate_test_packets())
-            return False
+        if interface:
+            self.interface = interface
+        elif not self.interface:
+            self.interface = _detect_default_interface()
 
-    def _handler(self, pkt) -> None:
-        from netghost.models.packet import PacketInfo as PI
-        info = PI.from_scapy(pkt)
-        if info is not None:
+        seen: set[str] = set()
+        candidates: list[str] = []
+        for iface in [self.interface, *_list_interfaces(), "eth0"]:
+            if iface and iface not in seen:
+                seen.add(iface)
+                candidates.append(iface)
+
+        from scapy.all import conf as scapy_conf
+        scapy_conf.verb = 0
+
+        for iface in candidates:
             try:
-                self._queue.put_nowait(info)
-            except asyncio.QueueFull:
+                subprocess.run(
+                    ["ip", "link", "show", iface],
+                    capture_output=True, check=True, timeout=2,
+                )
+            except Exception:
+                continue
+
+            self._t_queue = qmod.Queue(maxsize=5000)
+            self._stop_event.clear()
+            self._capture_thread = threading.Thread(
+                target=self._capture_worker,
+                args=(iface,),
+                daemon=True,
+            )
+            self._capture_thread.start()
+
+            self.interface = iface
+            self._running = True
+            self._bridge_task = asyncio.create_task(self._bridge_queues())
+            return True
+
+        self.interface = candidates[0]
+        print(
+            f"[NetGhost] Capture failed — no interface available",
+            file=sys.stderr,
+        )
+        return False
+
+    def _sniff_callback(self, pkt) -> None:
+        if self._stop_event.is_set():
+            return
+        try:
+            info = PacketInfo.from_scapy(pkt)
+        except Exception:
+            return
+        if info is None:
+            return
+        try:
+            self._t_queue.put_nowait(info)
+        except qmod.Full:
+            try:
+                self._t_queue.get_nowait()
+                self._t_queue.put_nowait(info)
+            except qmod.Empty:
+                pass
+
+    def _capture_worker(self, iface: str) -> None:
+        import logging
+        logging.getLogger('scapy').setLevel(logging.ERROR)
+        from scapy.all import sniff, conf as scapy_conf
+        scapy_conf.verb = 0
+        while not self._stop_event.is_set():
+            sniff(
+                iface=iface,
+                prn=self._sniff_callback,
+                store=0,
+                timeout=1,
+                stop_filter=lambda _: self._stop_event.is_set(),
+            )
+
+    async def _bridge_queues(self) -> None:
+        loop = asyncio.get_running_loop()
+        while self._running:
+            try:
+                info = await loop.run_in_executor(None, self._t_queue.get, True, 0.2)
                 try:
-                    self._queue.get_nowait()
                     self._queue.put_nowait(info)
-                except asyncio.QueueEmpty:
-                    pass
+                except asyncio.QueueFull:
+                    try:
+                        self._queue.get_nowait()
+                        self._queue.put_nowait(info)
+                    except asyncio.QueueEmpty:
+                        pass
+            except qmod.Empty:
+                pass
 
     async def _generate_test_packets(self) -> None:
         test_ips = [
@@ -127,7 +211,7 @@ class CaptureEngine:
                 l3=Layer3Info(src_ip=src_ip, dst_ip=dst_ip, proto=6 if proto == "TCP" else 17, ttl=random.randint(32, 128), version=4),
                 l4=Layer4Info(src_port=sp, dst_port=dp, protocol=proto, flags=flags, window=65535),
                 app_protocol=app,
-                app_details={"request": f"{proto} {src_ip}:{sp} → {dst_ip}:{dp}"},
+                app_details={"request": f"{proto} {src_ip}:{sp} \u2192 {dst_ip}:{dp}"},
             )
 
             try:
@@ -143,12 +227,13 @@ class CaptureEngine:
 
     def stop(self) -> None:
         self._running = False
-        if self._sniffer:
-            try:
-                self._sniffer.stop()
-            except Exception:
-                pass
-            self._sniffer = None
+        self._stop_event.set()
+        if self._capture_thread and self._capture_thread.is_alive():
+            self._capture_thread.join(timeout=3)
+            self._capture_thread = None
+        if self._bridge_task:
+            self._bridge_task.cancel()
+            self._bridge_task = None
         if self._test_task:
             self._test_task.cancel()
             self._test_task = None
@@ -160,7 +245,7 @@ class CaptureEngine:
     @staticmethod
     def list_interfaces() -> list[str]:
         try:
-            from scapy.all import conf  # type: ignore
+            from scapy.all import conf
             return sorted(conf.ifaces.data.keys())
         except Exception:
             return ["eth0", "wlan0", "lo"]
@@ -182,7 +267,18 @@ class CaptureEngine:
             s.close()
             return ip
         except Exception:
-            return "0.0.0.0"
+            pass
+        try:
+            result = subprocess.run(
+                ["ip", "-4", "addr", "show", iface],
+                capture_output=True, text=True, timeout=3
+            )
+            for line in result.stdout.splitlines():
+                if "inet " in line:
+                    return line.strip().split()[1].split("/")[0]
+        except Exception:
+            pass
+        return "0.0.0.0"
 
     @staticmethod
     def _get_mac(iface: str) -> str:
