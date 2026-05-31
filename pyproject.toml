@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
-    {name = "NetGhost Contributors"},
+    {name = "labirend", email = "148393366+labirend@users.noreply.github.com"},
 ]
 
 dependencies = [
