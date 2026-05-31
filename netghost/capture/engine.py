@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-import fcntl
 import os
 import queue as qmod
 import random
-import socket
-import struct
 import subprocess
 import sys
 import threading
@@ -18,16 +15,8 @@ from netghost.models.packet import PacketInfo, Layer2Info, Layer3Info, Layer4Inf
 
 def _list_interfaces() -> list[str]:
     try:
-        r = subprocess.run(
-            ["ip", "-br", "link", "show"],
-            capture_output=True, text=True, timeout=3,
-        )
-        ifaces = []
-        for line in r.stdout.splitlines():
-            parts = line.split()
-            if parts and parts[0] != "lo":
-                ifaces.append(parts[0])
-        return ifaces
+        from scapy.all import conf as scapy_conf
+        return sorted(scapy_conf.ifaces.data.keys())
     except Exception:
         return []
 
@@ -37,19 +26,12 @@ def _detect_default_interface() -> str:
     if env_iface:
         return env_iface
     try:
-        result = subprocess.run(
-            ["ip", "route", "show", "default"],
-            capture_output=True, text=True, timeout=3
-        )
-        for line in result.stdout.splitlines():
-            parts = line.split()
-            if "dev" in parts:
-                idx = parts.index("dev")
-                if idx + 1 < len(parts):
-                    return parts[idx + 1]
-    except (FileNotFoundError, subprocess.TimeoutExpired, IndexError):
+        from scapy.all import conf as scapy_conf
+        iface = scapy_conf.iface
+        if iface and iface.name and iface.name != "lo":
+            return iface.name
+    except Exception:
         pass
-
     candidates = _list_interfaces()
     if candidates:
         return candidates[0]
@@ -103,10 +85,8 @@ class CaptureEngine:
 
         for iface in candidates:
             try:
-                subprocess.run(
-                    ["ip", "link", "show", iface],
-                    capture_output=True, check=True, timeout=2,
-                )
+                if iface not in scapy_conf.ifaces.data:
+                    continue
             except Exception:
                 continue
 
@@ -259,13 +239,10 @@ class CaptureEngine:
     @staticmethod
     def _get_ip(iface: str) -> str:
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            ip = socket.inet_ntoa(fcntl.ioctl(
-                s.fileno(), 0xc0206921,
-                struct.pack("256s", iface[:15].encode())
-            )[20:24])
-            s.close()
-            return ip
+            from scapy.all import conf as scapy_conf
+            ip = scapy_conf.ifaces[iface].ip
+            if ip and ip != "0.0.0.0":
+                return ip
         except Exception:
             pass
         try:
@@ -283,12 +260,10 @@ class CaptureEngine:
     @staticmethod
     def _get_mac(iface: str) -> str:
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            mac_bytes = fcntl.ioctl(
-                s.fileno(), 0x8927,
-                struct.pack("256s", iface[:15].encode())
-            )[18:24]
-            s.close()
-            return ":".join(f"{b:02x}" for b in mac_bytes)
+            from scapy.all import conf as scapy_conf
+            mac = scapy_conf.ifaces[iface].mac
+            if mac and mac != "00:00:00:00:00:00":
+                return mac
         except Exception:
-            return "00:00:00:00:00:00"
+            pass
+        return "00:00:00:00:00:00"

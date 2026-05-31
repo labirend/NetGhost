@@ -24,7 +24,7 @@ NetGhost is a terminal user interface (TUI) tool for live packet capture, traffi
 
 ## Quick Start
 
-### Docker (Recommended)
+### Docker (Linux — Real Capture)
 
 ```bash
 # Clone
@@ -43,15 +43,36 @@ NETGHOST_DEV=1 docker compose run netghost
 
 The container runs with `privileged: true` and host networking for full interface access. The `NET_RAW` and `NET_ADMIN` capabilities are included but superseded by the privileged mode.
 
-### Natively (Linux)
+> **Note:** Real capture via Docker is only supported on **Linux hosts**. macOS and Windows users should use [native installation](#native-installation-all-platforms) for real capture, or demo mode in Docker.
 
+### Native Installation (All Platforms)
+
+> **Note:** Real packet capture requires privileged access. For testing without privileges in any environment, use `NETGHOST_DEV=1` for simulated traffic.
+
+**Linux:**
 ```bash
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-NETGHOST_DEV=1 python -m netghost
+sudo python -m netghost           # real capture
+# or NETGHOST_DEV=1 python -m netghost  # demo mode
 ```
 
-> **Note:** Real packet capture requires root or `privileged` Docker container. For native testing without privileges, use `NETGHOST_DEV=1` for simulated traffic.
+**macOS:**
+```bash
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+sudo python3 -m netghost           # real capture (BPF)
+# or NETGHOST_DEV=1 python3 -m netghost  # demo mode
+```
+
+**Windows (PowerShell as Administrator):**
+```powershell
+python -m venv venv; .\venv\Scripts\activate
+pip install -r requirements.txt
+# Install Npcap from https://npcap.com (required for packet capture)
+python -m netghost                 # run as Administrator
+# or $env:NETGHOST_DEV=1; python -m netghost  # demo mode
+```
 
 ---
 
@@ -102,7 +123,7 @@ NETGHOST_DEV=1 python -m netghost
 ```
 NetGhost/
 ├── Dockerfile              # Multi-stage build (python:3.11-slim)
-├── docker-compose.yml      # Host networking, minimum caps
+├── docker-compose.yml      # Host networking, privileged
 ├── pyproject.toml          # Package metadata
 ├── requirements.txt        # textual, scapy, rich
 ├── setup.py                # Setuptools shim
@@ -141,7 +162,7 @@ NetGhost/
 
 ---
 
-## Docker on Linux
+## Docker on Linux (Recommended for Linux Users)
 
 ```bash
 # Build
@@ -154,20 +175,33 @@ docker compose run netghost
 NETGHOST_DEV=1 docker compose run netghost
 ```
 
-> **Note:** The container runs with `privileged: true` — this gives full access to host network interfaces. Linux users must have Docker installed and their user in the `docker` group. If you get a permission error, run `newgrp docker` and try again.
+> **Note:** The container runs with `privileged: true` — this gives full access to host network interfaces. Your user must be in the `docker` group. If you get a permission error, run `newgrp docker` and try again.
+
+### Linux Tips — One-Command Alias
+
+Add these to your `~/.bashrc` or `~/.zshrc` for convenience:
+
+```bash
+# Start Docker (if not running), launch NetGhost, stop Docker on exit
+alias netghost='sudo systemctl start docker && cd ${HOME}/Workspace/Cyber/Network/NetGhost && docker compose run --rm netghost; sudo systemctl stop docker; cd -'
+```
+
+After reloading your shell (`source ~/.bashrc`), simply type `netghost` from any directory. Press `Q` inside the TUI to exit — Docker is stopped automatically afterward.
 
 ---
 
 ## Docker on macOS & Windows
 
-Install [Docker Desktop](https://www.docker.com/products/docker-desktop/), then the same commands work:
+> **⚠️ Limitation:** Docker Desktop on macOS and Windows runs containers inside a Linux VM. The `host` networking mode cannot expose the host's physical network interfaces to the container. **Real packet capture will not work** in Docker on these platforms.
+
+Install [Docker Desktop](https://www.docker.com/products/docker-desktop/):
 
 ```bash
 docker compose build
-docker compose run netghost
+NETGHOST_DEV=1 docker compose run netghost   # demo mode only
 ```
 
-Docker Desktop runs a Linux VM under the hood — the container is Linux on all platforms.
+For real packet capture on macOS or Windows, use the [native installation](#native-installation-all-platforms) method instead.
 
 ---
 
